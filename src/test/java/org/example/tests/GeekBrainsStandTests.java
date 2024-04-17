@@ -7,13 +7,18 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -36,18 +41,23 @@ public class GeekBrainsStandTests {
 
     @BeforeAll
     public static void setupClass() {
-        Configuration.remote = "http://localhost:4444/wd/hub";
+
         // Помещаем в переменные окружения путь до драйвера
-        //System.setProperty("webdriver.chrome.driver", "src\\test\\resources\\chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", "src\\test\\resources\\chromedriver.exe");
         // mvn clean test -Dgeekbrains_username=USER -Dgeekbrains_password=PASS
         USERNAME = "GB202302c48fb20";
         PASSWORD = "7abe49a426";
     }
 
     @BeforeEach
-    public void setupTest() {
+    public void setupTest() throws MalformedURLException {
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        capabilities.setBrowserName("chrome");
+        capabilities.setVersion("123");
+        capabilities.setCapability("enableVnc", true);
         // Создаём экземпляр драйвера
-        driver = new ChromeDriver();
+        //driver = new ChromeDriver();
+        driver = new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), capabilities);
         wait = new WebDriverWait(driver, Duration.ofSeconds(30));
         // Растягиваем окно браузера на весь экран
         driver.manage().window().maximize();
@@ -58,11 +68,12 @@ public class GeekBrainsStandTests {
     }
 
     @Test
-    public void testLoginWithEmptyFields() {
+    public void testLoginWithEmptyFields() throws InterruptedException {
         // Клик на кнопку LOGIN без ввода данных в поля
         loginPage.clickLoginButton();
         // Проверка, что появился блок с ожидаемой ошибкой
         assertEquals("401 Invalid credentials.", loginPage.getErrorBlockText());
+        Thread.sleep(5000);
     }
 
     @Test
